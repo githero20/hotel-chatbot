@@ -54,6 +54,7 @@ export const initFAQs = async () => {
     collectionName: "chat-collection",
     url: "http://localhost:8000", // Connect to the running Chroma instance
   });
+  console.log("✅ ChromaDB initialized with hotel FAQs.");
   // await vectorStore.addDocuments(splitDocs);
 
   return vectorStore;

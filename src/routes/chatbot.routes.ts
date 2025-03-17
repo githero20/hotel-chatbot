@@ -1,4 +1,5 @@
 import express from "express";
+// import { answerQuestion } from "../services/chatbot.services";
 import { askQuestion } from "../controller/chatbot.controller";
 
 const router = express.Router();
@@ -6,7 +7,8 @@ const router = express.Router();
 // @route    POST api/chatbot/ask
 router.post("/ask", askQuestion);
 
-// router.post("/ask", async (req, res) => {
+// router.post("/ask", async (req: any, res: any) => {
+//   console.log(req);
 //   try {
 //     const { question } = req.body;
 //     if (!question) {

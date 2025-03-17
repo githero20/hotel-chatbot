@@ -15,7 +15,8 @@ let vectorStore: Chroma | null = null;
 
 // initialize FAQs
 export const initFAQs = async () => {
-  // if (vectorStore) return vectorStore; // Prevent reloading if already initialized
+  if (vectorStore) return vectorStore; // Prevent reloading if already initialized
+  console.log("default vector store", vectorStore);
 
   const loadedDocs = await faqLoader("FAQs.docx");
 
@@ -37,16 +38,26 @@ export const initFAQs = async () => {
    * Next, we instantiate a vector store. This is where we store the embeddings of the documents.
    * We also need to provide an embeddings object. This is used to embed the documents.
    */
-  const vectorStore = await Chroma.fromDocuments(splitDocs, embeddings, {
+  console.log("creating vector store");
+  vectorStore = await Chroma.fromDocuments(splitDocs, embeddings, {
     collectionName: "chat-collection",
     url: "http://localhost:8000", // Connect to the running Chroma instance
+    collectionMetadata: {
+      "hnsw:space": "cosine",
+    }, // Optional, can be used to specify the distance method of the embedding space https://docs.trychroma.com/usage-guide#changing-the-distance-function
   });
+  // this is failing
   // await vectorStore.addDocuments(splitDocs);
+  if (vectorStore == undefined) {
+    console.warn("⚠ Vector store creation failed");
+  }
+  console.log("initialized vector store", vectorStore);
 
   return vectorStore;
 };
 
 export const answerQuestion = async (question: string) => {
+  console.log(vectorStore);
   if (!vectorStore) {
     console.warn("⚠ Vector store not initialized, initializing now...");
     await initFAQs();

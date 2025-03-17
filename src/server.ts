@@ -20,3 +20,7 @@ const startServer = async () => {
 };
 
 startServer();
+
+// docker pull chromadb/chroma
+// docker run -p 8000:8000 chromadb/chroma
+// http://localhost:8000/api//v2/tenants/default_tenant/databases/default_database/collections
