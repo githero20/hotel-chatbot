@@ -7,11 +7,13 @@ import { faqLoader } from "../utils/faqLoader";
 
 const llm = new ChatMistralAI({
   model: "mistral-large-latest",
-  temperature: 0,
+  temperature: 0.2,
 });
 
 // Store vector DB in memory
 let vectorStore: Chroma | null = null;
+
+const ChromaDbUrl = process.env.CHROMA_URL || "http://localhost:8000";
 
 // initialize FAQs
 export const initFAQs = async () => {
@@ -38,26 +40,27 @@ export const initFAQs = async () => {
    * Next, we instantiate a vector store. This is where we store the embeddings of the documents.
    * We also need to provide an embeddings object. This is used to embed the documents.
    */
-  console.log("creating vector store");
+  console.log("🟢 Initializing vector store...");
   vectorStore = await Chroma.fromDocuments(splitDocs, embeddings, {
-    collectionName: "chat-collection",
-    url: "http://localhost:8000", // Connect to the running Chroma instance
+    collectionName: "chat-collection-ai",
+    url: ChromaDbUrl, // Connect to the running Chroma instance
     collectionMetadata: {
       "hnsw:space": "cosine",
     }, // Optional, can be used to specify the distance method of the embedding space https://docs.trychroma.com/usage-guide#changing-the-distance-function
   });
+  console.log("✅ ChromaDB initialized with hotel FAQs.");
+
   // this is failing
   // await vectorStore.addDocuments(splitDocs);
-  if (vectorStore == undefined) {
+  if (vectorStore == undefined || vectorStore == null) {
     console.warn("⚠ Vector store creation failed");
   }
-  console.log("initialized vector store", vectorStore);
+  console.log("Initialized vector store");
 
   return vectorStore;
 };
 
 export const answerQuestion = async (question: string) => {
-  console.log(vectorStore);
   if (!vectorStore) {
     console.warn("⚠ Vector store not initialized, initializing now...");
     await initFAQs();
@@ -79,31 +82,6 @@ export const answerQuestion = async (question: string) => {
       "Context is empty. Ensure the retriever is returning results."
     );
   }
-
-  // // Define a Hugging Face model as a Runnable function
-  // const huggingFaceModel = new RunnableLambda({
-  //   func: async (input: ChatPromptValue) => {
-  //     // Extract string from ChatPromptValueInterface
-  //     const inputText = input.toString(); // Converts ChatPromptValue to plain string
-
-  //     const response = await inference.textGeneration({
-  //       model: "HuggingFaceH4/zephyr-7b-alpha",
-  //       inputs: inputText,
-  //       parameters: {
-  //         max_new_tokens: 80,
-  //         temperature: 0.9,
-  //       },
-  //     });
-  //     return response.generated_text.trim();
-  //   },
-  // });
-
-  // const chain = promptTemplate.pipe(huggingFaceModel);
-
-  // const response: any = await chain.invoke({
-  //   question: question,
-  //   context: resultDocs,
-  // });
 
   // build template
   const promptTemplate = ChatPromptTemplate.fromTemplate(
