@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 import { answerQuestion } from "../services/chatbot.services";
 
-export async function askQuestion(req: Request, res: Response) {
+export async function askQuestion(req: Request, res: Response): Promise<void> {
   try {
     const { question } = req.body;
     if (!question) {
-      return res.status(400).json({ error: "Question is required." });
+      res.status(400).json({ error: "Question is required." });
+      return;
     }
     const answer = await answerQuestion(question);
     res.json({ answer });
