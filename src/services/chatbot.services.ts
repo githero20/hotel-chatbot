@@ -1,17 +1,22 @@
-import { faqLoader } from "./utils/faqLoader";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatMistralAI, MistralAIEmbeddings } from "@langchain/mistralai";
 import { StringOutputParser } from "@langchain/core/output_parsers";
+import { faqLoader } from "../utils/faqLoader";
 
 const llm = new ChatMistralAI({
   model: "mistral-large-latest",
   temperature: 0,
 });
 
+// Store vector DB in memory
+let vectorStore: Chroma | null = null;
+
 // initialize FAQs
 export const initFAQs = async () => {
+  // if (vectorStore) return vectorStore; // Prevent reloading if already initialized
+
   const loadedDocs = await faqLoader("FAQs.docx");
 
   // create your splitter
@@ -41,9 +46,14 @@ export const initFAQs = async () => {
   return vectorStore;
 };
 
-export const answerQuestion = async (question: string, vectorStore: Chroma) => {
+export const answerQuestion = async (question: string) => {
+  if (!vectorStore) {
+    console.warn("⚠ Vector store not initialized, initializing now...");
+    await initFAQs();
+  }
+
   // create data retriever:
-  const retriever = vectorStore.asRetriever({
+  const retriever = vectorStore!.asRetriever({
     k: 2,
     searchType: "similarity",
   });
