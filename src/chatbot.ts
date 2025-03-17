@@ -2,41 +2,15 @@ import { faqLoader } from "./utils/faqLoader";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { Embeddings } from "@langchain/core/embeddings";
-import { ChatMistralAI } from "@langchain/mistralai";
-// import { OpenAIEmbeddings } from "@langchain/openai";
-// import { RunnableLambda } from "@langchain/core/runnables";
-import { HfInference } from "@huggingface/inference";
-// import { ChatPromptValue } from "@langchain/core/prompt_values";
+import { ChatMistralAI, MistralAIEmbeddings } from "@langchain/mistralai";
 import { StringOutputParser } from "@langchain/core/output_parsers";
-
-const inference = new HfInference(process.env.HF_TOKEN);
 
 const llm = new ChatMistralAI({
   model: "mistral-large-latest",
   temperature: 0,
 });
 
-/** Create a custom embeddings class implementing LangChain's Embeddings interface */
-class HuggingFaceEmbeddings extends Embeddings {
-  constructor() {
-    super({}); // Call super with an empty object (LangChain requires it)
-  }
-
-  async embedQuery(text: string): Promise<number[]> {
-    const output = await inference.featureExtraction({
-      model: "sentence-transformers/all-MiniLM-L6-v2",
-      inputs: text,
-    });
-    return output as number[];
-  }
-
-  async embedDocuments(texts: string[]): Promise<number[][]> {
-    return Promise.all(texts.map((text) => this.embedQuery(text)));
-  }
-}
-
-// Load FAQs from Docx file
+// initialize FAQs
 export const initFAQs = async () => {
   const loadedDocs = await faqLoader("FAQs.docx");
 
@@ -50,7 +24,9 @@ export const initFAQs = async () => {
   const splitDocs = await textSplitter.splitDocuments(loadedDocs);
 
   // Instantiate Hugging Face embeddings class
-  const embeddings = new HuggingFaceEmbeddings();
+  const embeddings = new MistralAIEmbeddings({
+    model: "mistral-embed",
+  });
 
   /**
    * Next, we instantiate a vector store. This is where we store the embeddings of the documents.
@@ -125,8 +101,8 @@ Helpful Answer:`
   const chain = promptTemplate.pipe(llm).pipe(parser);
 
   const responseText: any = await chain.invoke({
-    question: question,
     context: resultDocs,
+    question: question,
   });
 
   return responseText;
