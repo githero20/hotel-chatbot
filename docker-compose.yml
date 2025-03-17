@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE # Enables persistence
+
+volumes:
+  chromadb_data:
+    driver: local

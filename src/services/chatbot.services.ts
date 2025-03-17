@@ -46,11 +46,10 @@ export const initFAQs = async () => {
     url: ChromaDbUrl, // Connect to the running Chroma instance
     collectionMetadata: {
       "hnsw:space": "cosine",
-    }, // Optional, can be used to specify the distance method of the embedding space https://docs.trychroma.com/usage-guide#changing-the-distance-function
+    }, // Optional, used to specify the distance method of the embedding space https://docs.trychroma.com/usage-guide#changing-the-distance-function
   });
   console.log("✅ ChromaDB initialized with hotel FAQs.");
 
-  // this is failing
   // await vectorStore.addDocuments(splitDocs);
   if (vectorStore == undefined || vectorStore == null) {
     console.warn("⚠ Vector store creation failed");
