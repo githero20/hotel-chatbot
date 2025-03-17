@@ -4,7 +4,7 @@ import { initFAQs, answerQuestion } from "./chatbot"; // Adjust filename
   const vectorStore = await initFAQs();
 
   const response = await answerQuestion(
-    "What was my last question?",
+    "What happens when there is a power outage?",
     vectorStore
   );
 

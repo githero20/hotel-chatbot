@@ -2,20 +2,14 @@ import { faqLoader } from "./utils/faqLoader";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { Embeddings } from "@langchain/core/embeddings";
-import { ChatMistralAI } from "@langchain/mistralai";
-// import { OpenAIEmbeddings } from "@langchain/openai";
-// import { RunnableLambda } from "@langchain/core/runnables";
+// import HuggingFaceEmbeddings from "./utils/HuggingFaceEmbeddings";
+import { RunnableLambda } from "@langchain/core/runnables";
 import { HfInference } from "@huggingface/inference";
-// import { ChatPromptValue } from "@langchain/core/prompt_values";
+import { Embeddings } from "@langchain/core/embeddings";
+import { ChatPromptValue } from "@langchain/core/prompt_values";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 
 const inference = new HfInference(process.env.HF_TOKEN);
-
-const llm = new ChatMistralAI({
-  model: "mistral-large-latest",
-  temperature: 0,
-});
 
 /** Create a custom embeddings class implementing LangChain's Embeddings interface */
 class HuggingFaceEmbeddings extends Embeddings {
@@ -43,7 +37,7 @@ export const initFAQs = async () => {
   // create your splitter
   const textSplitter = new RecursiveCharacterTextSplitter({
     chunkSize: 1000,
-    chunkOverlap: 200,
+    chunkOverlap: 100,
   });
 
   /**  split the docs into chunks*/
@@ -77,29 +71,31 @@ export const answerQuestion = async (question: string, vectorStore: Chroma) => {
   // return the docs themselves
   const resultDocs = results.map((res) => res.pageContent);
 
-  if (!resultDocs) {
+  const formattedContext = resultDocs.join("\n\n"); // Combine retrieved FAQs into a clear format
+
+  if (!formattedContext) {
     throw new Error(
       "Context is empty. Ensure the retriever is returning results."
     );
   }
 
-  // // Define a Hugging Face model as a Runnable function
-  // const huggingFaceModel = new RunnableLambda({
-  //   func: async (input: ChatPromptValue) => {
-  //     // Extract string from ChatPromptValueInterface
-  //     const inputText = input.toString(); // Converts ChatPromptValue to plain string
+  // Define a Hugging Face model as a Runnable function
+  const huggingFaceModel = new RunnableLambda({
+    func: async (input: ChatPromptValue) => {
+      // Extract string from ChatPromptValueInterface
+      const inputText = input.toString(); // Converts ChatPromptValue to plain string
 
-  //     const response = await inference.textGeneration({
-  //       model: "HuggingFaceH4/zephyr-7b-alpha",
-  //       inputs: inputText,
-  //       parameters: {
-  //         max_new_tokens: 80,
-  //         temperature: 0.9,
-  //       },
-  //     });
-  //     return response.generated_text.trim();
-  //   },
-  // });
+      const response = await inference.textGeneration({
+        model: "HuggingFaceH4/zephyr-7b-alpha",
+        inputs: inputText,
+        parameters: {
+          max_new_tokens: 80,
+          temperature: 0.9,
+        },
+      });
+      return response.generated_text.trim();
+    },
+  });
 
   // const chain = promptTemplate.pipe(huggingFaceModel);
 
@@ -109,10 +105,22 @@ export const answerQuestion = async (question: string, vectorStore: Chroma) => {
   // });
 
   // build template
+  // const promptTemplate = ChatPromptTemplate.fromMessages([
+  //   [
+  //     "system",
+  //     `You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
+  //       Question: {input}
+  //       Context: {context}
+  //       Answer:`,
+  //   ],
+  //   ["user", "{input}"],
+  // ]);
+
   const promptTemplate = ChatPromptTemplate.fromTemplate(
     `Use the following pieces of context to answer the question at the end.
 If you don't know the answer, just say that you don't know, don't try to make up an answer.
 Use three sentences maximum and keep the answer as concise as possible.
+Always say "thanks for asking!" at the end of the answer.
 
 {context}
 
@@ -122,12 +130,23 @@ Helpful Answer:`
   );
   const parser = new StringOutputParser();
 
-  const chain = promptTemplate.pipe(llm).pipe(parser);
+  // return response.content;
+  const chain = promptTemplate.pipe(huggingFaceModel).pipe(parser);
+
+  // const formattedInput = `Context: ${formattedContext}\n\nQuestion: ${question}\n\nAnswer:`;
 
   const responseText: any = await chain.invoke({
     question: question,
-    context: resultDocs,
+    context: formattedContext, // formatted FAQs
   });
 
-  return responseText;
+  // return response
+  //   .replace(/^.*?Human:/s, "") // Remove everything before "AI:"
+  //   .trim();
+  const cleanResponse =
+    responseText
+      .split("AI:")[1] // Keep only the part after "AI:"
+      ?.trim() || responseText.trim(); // Fallback in case there's no "AI:" prefix
+
+  return cleanResponse;
 };
