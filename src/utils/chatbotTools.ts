@@ -7,8 +7,15 @@ import {
 import { ChatMistralAI, MistralAIEmbeddings } from "@langchain/mistralai";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { faqLoader } from "../utils/faqLoader";
-import { RunnableWithMessageHistory } from "@langchain/core/runnables";
-import { UpstashRedisChatMessageHistory } from "@langchain/community/stores/message/upstash_redis";
+import {
+  Runnable,
+  RunnableConfig,
+  RunnablePassthrough,
+  RunnableSequence,
+  // RunnableWithMessageHistory,
+} from "@langchain/core/runnables";
+import { formatDocumentsAsString } from "langchain/util/document";
+// import { UpstashRedisChatMessageHistory } from "@langchain/community/stores/message/upstash_redis";
 
 const llm = new ChatMistralAI({
   model: "mistral-large-latest",
@@ -64,13 +71,122 @@ export const initFAQs = async () => {
   return vectorStore;
 };
 
-// creates chain and returns a response
-// uses langgraph
-export const createChain = async (question: string) => {
+// receives a question checks if it makes reference to chat history
+// then creates a sub-chain that contextualizes that question with respect to the chat history
+export const createContextualChain = () => {
+  const contextualizeSystemPrompt = `Given a chat history and the latest user question
+which might reference context in the chat history, formulate a standalone question
+which can be understood without the chat history. Do NOT answer the question,
+just reformulate it if needed and otherwise return it as is.`;
+
+  const contextualizePrompt = ChatPromptTemplate.fromMessages([
+    ["system", contextualizeSystemPrompt],
+    new MessagesPlaceholder("chat_history"),
+    ["human", "{question}"],
+  ]);
+  const contextualizeChain = contextualizePrompt
+    .pipe(llm)
+    .pipe(new StringOutputParser());
+
+  return contextualizeChain;
+};
+
+// creates chain and returns a response based on chat history
+export const createChainWithHistory = async (question: string) => {
   if (!vectorStore) {
     console.warn("⚠ Vector store not initialized, initializing now...");
     await initFAQs();
   }
+
+  const qaSystemPrompt = `You are an assistant for question-answering tasks.
+Use the following pieces of retrieved context to answer the question.
+If you don't know the answer, just say that you don't know.
+Use three sentences maximum and keep the answer concise.
+
+{context}`;
+
+  const qaPrompt = ChatPromptTemplate.fromMessages([
+    ["system", qaSystemPrompt],
+    new MessagesPlaceholder("chat_history"), // adds chat history to the prompt
+    ["human", "{question}"],
+  ]);
+
+  // use contextualize chain only when chat_history is passed in the prompt
+  // returns a properly contextualized question
+  const contextualizedQuestion = (input: Record<string, unknown>) => {
+    if ("chat_history" in input) {
+      return createContextualChain(); // return contextual chain
+    }
+    return input.question;
+  };
+
+  // If a function in an LCEL chain returns another chain, that chain will itself be invoked
+  // creates a chain with context from past chat history
+  const ragChain = RunnableSequence.from([
+    RunnablePassthrough.assign({
+      context: async (input: Record<string, unknown>) => {
+        if ("chat_history" in input) {
+          const chain = contextualizedQuestion(input) as Runnable<
+            any,
+            string,
+            RunnableConfig<Record<string, any>>
+          >;
+          return chain.pipe(retriever).pipe(formatDocumentsAsString);
+        }
+        return "";
+      },
+    }),
+    qaPrompt,
+    llm,
+  ]);
+
+  let chat_history = [];
+
+  // create data retriever:
+  const retriever = vectorStore!.asRetriever({
+    k: 2,
+    searchType: "similarity",
+  });
+
+  // get relevant documents:
+  const results = await retriever.invoke(question);
+  // return the docs themselves
+  const resultDocs = results.map((res) => res.pageContent);
+
+  if (!resultDocs) {
+    throw new Error(
+      "Context is empty. Ensure the retriever is returning results."
+    );
+  }
+
+  // build template
+  const promptTemplate = ChatPromptTemplate.fromTemplate(
+    `Use the following pieces of context to answer the question at the end.
+If you don't know the answer, just say that you don't know, don't try to make up an answer.
+Use three sentences maximum and keep the answer as concise as possible.
+
+{context}
+
+Question: {question}
+
+Helpful Answer:`
+  );
+  const parser = new StringOutputParser();
+
+  // const chain = await createStuffDocumentsChain({
+  //   llm,
+  //   promptTemplate,
+  //   parser
+  // })
+
+  const chain = promptTemplate.pipe(llm).pipe(parser);
+
+  const responseText = await chain.invoke({
+    context: resultDocs,
+    question: question,
+  });
+
+  return responseText;
 };
 
 // const createChainWithHistoryNew = async (question: string) => {
@@ -138,6 +254,7 @@ export const createChain = async (question: string) => {
 
 //   // Adding Message History to our chain
 //   // Using LCEL
+
 //   const chainWithHistory = new RunnableWithMessageHistory({
 //     runnable: chain,
 //     getMessageHistory: (sessionId) =>
@@ -169,10 +286,5 @@ export const createChain = async (question: string) => {
 //   //   question: question,
 //   // });
 
-//   return responseText;
-// };
-
-// export const answerQuestion = async (question: string) => {
-//   const responseText = await createChainWithHistoryNew(question);
 //   return responseText;
 // };
