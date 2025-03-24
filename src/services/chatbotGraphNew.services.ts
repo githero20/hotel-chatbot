@@ -11,6 +11,7 @@ import {
   SystemMessage,
   ToolMessage,
 } from "@langchain/core/messages";
+import { logAIConversation } from "../utils/extractFinalAIResponse";
 
 // Instantiate the model
 const llm = new ChatMistralAI({
@@ -122,7 +123,7 @@ export const createGraph = async () => {
     );
 
     const messagesWithSystem = [systemMessage, ...userMessages];
-    // console.log("Messages sent to LLM:", messagesWithSystem);
+    console.log("Messages sent to LLM:", messagesWithSystem);
 
     const response = await llmWithTools.invoke(messagesWithSystem);
     // console.log("Model response:", response);
@@ -174,24 +175,6 @@ export const createGraph = async () => {
     return { messages: [response] };
   }
 
-  // // to check the retriever function
-  // console.log(
-  //   "tool retrieval",
-  //   await retrieve.invoke({ query: "What is the check-in time" })
-  // );
-
-  // console.log(
-  //   "tool retrieval",
-  //   await retrieve.invoke({
-  //     name: "retrieve",
-  //     args: { query: "What is the check in time?" },
-  //     id: "234",
-  //     type: "tool_call",
-  //   })
-  // );
-
-  // console.log(tools);
-
   // // 2. Add logging to the toolsCondition to debug
   // const myToolsCondition = (state: typeof MessagesAnnotation.State) => {
   //   const result = toolsCondition(state);
@@ -222,6 +205,11 @@ export const answerQuestion = async (question: string) => {
   // is it sensible to create a graph each time?
   const resGraph = await createGraph();
   const response = await resGraph.invoke(inputs);
+
+  // logs the graph conversation in console
+  // can be used to see how the query is rewritten before being sent to the llm
+  // and also what relevant content is extracted and how it is used
+  await logAIConversation(resGraph, inputs);
 
   // return response;
   return response.messages[response.messages.length - 1].lc_kwargs.content;
