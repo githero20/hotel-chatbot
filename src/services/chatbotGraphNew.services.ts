@@ -15,7 +15,7 @@ import {
   SystemMessage,
   ToolMessage,
 } from "@langchain/core/messages";
-import { logAIConversation } from "../utils/extractFinalAIResponse";
+// import { logAIConversation } from "../utils/extractFinalAIResponse";
 import { v4 as uuidv4 } from "uuid";
 
 // Instantiate the model
@@ -31,6 +31,9 @@ const embeddings = new MistralAIEmbeddings({
 
 // Store vector DB in memory
 let vectorStore: Chroma | null = null;
+
+// Store Graph in memory
+let resGraph: any = null;
 
 // export const createChromaVectorStore = () => {
 //   const vectorStore = new Chroma(embeddings, {
@@ -218,17 +221,32 @@ export const answerQuestion = async (question: string, threadId?: string) => {
 
   let newThreadId = threadId ?? uuidv4();
 
+  // you can also save user_id with memory store
   let config = { configurable: { thread_id: newThreadId } };
 
+  console.log("newThread", newThreadId);
+
   // is it sensible to create a graph each time?
-  const resGraph = await createGraph();
-  const response = await resGraph.invoke(inputs, config);
+  if (!resGraph) {
+    resGraph = await createGraph();
+  }
+
+  let response;
+  try {
+    response = await resGraph.invoke(inputs, config);
+  } catch (error) {
+    console.error("Error executing graph:", error);
+    // Provide a fallback response or rethrow
+    return new AIMessage(
+      "I'm sorry, I encountered an error processing your question."
+    );
+  }
 
   // logs the graph conversation in console
   // can be used to see how the query is rewritten before being sent to the llm
   // and also what relevant content is extracted and how it is used
-  await logAIConversation(resGraph, inputs, newThreadId);
+  // await logAIConversation(resGraph, inputs, newThreadId);
 
   // return response;
-  return response.messages[response.messages.length - 1].content;
+  return response.messages[response.messages.length - 1]?.lc_kwargs?.content;
 };
