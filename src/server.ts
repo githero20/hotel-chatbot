@@ -1,5 +1,5 @@
 import app from "./app";
-import { initFAQs } from "./services/chatbotChain.services";
+import { initFAQs } from "./services/chatbotGraphNew.services";
 
 const PORT = process.env.PORT || 5000;
 

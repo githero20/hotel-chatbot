@@ -20,6 +20,7 @@ export const initFAQs = async () => {
   if (vectorStore) return vectorStore; // Prevent reloading if already initialized
   console.log("default vector store", vectorStore);
 
+  // Load the data
   const loadedDocs = await faqLoader("FAQs.docx");
 
   // create your splitter
@@ -28,7 +29,7 @@ export const initFAQs = async () => {
     chunkOverlap: 200,
   });
 
-  /**  split the docs into chunks*/
+  //  split the docs into chunks
   const splitDocs = await textSplitter.splitDocuments(loadedDocs);
 
   // Instantiate Hugging Face embeddings class
@@ -108,15 +109,16 @@ export const createGraph = async (question: string) => {
     // get relevant documents:
     const results = await retriever.invoke(question);
     // return the docs themselves
-    const resultDocs = results.map((res) => res.pageContent);
+    // const resultDocs = results.map((res) => res.pageContent);
 
-    if (!resultDocs) {
-      throw new Error(
-        "Context is empty. Ensure the retriever is returning results."
-      );
-    }
+    // if (!results) {
+    //   throw new Error(
+    //     "Context is empty. Ensure the retriever is returning results."
+    //   );
+    // }
 
-    return { context: results, perDocs: resultDocs };
+    return { context: results };
+    // return { context: results, perDocs: resultDocs };
   };
 
   const generate = async (state: typeof StateAnnotation.State) => {

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { answerQuestion } from "../services/chatbotGraph.services";
+import { answerQuestion } from "../services/chatbotGraphNew.services";
 
 export async function askQuestion(req: Request, res: Response): Promise<void> {
   try {
