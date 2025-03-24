@@ -248,5 +248,14 @@ export const answerQuestion = async (question: string, threadId?: string) => {
   // await logAIConversation(resGraph, inputs, newThreadId);
 
   // return response;
-  return response.messages[response.messages.length - 1]?.lc_kwargs?.content;
+
+  const finalRes: {
+    answer: string;
+    threadId: string;
+  } = {
+    answer: response.messages[response.messages.length - 1]?.lc_kwargs?.content,
+    threadId: newThreadId,
+  };
+
+  return finalRes;
 };
