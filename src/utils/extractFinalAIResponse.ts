@@ -5,6 +5,7 @@ import {
   isAIMessage,
   ToolMessage,
 } from "@langchain/core/messages";
+import { threadId } from "worker_threads";
 
 export const extractFinalAIResponse = (messages: BaseMessage[]): string => {
   // Find the last human message first
@@ -39,7 +40,11 @@ export const extractFinalAIResponse = (messages: BaseMessage[]): string => {
   }
 };
 
-export const logAIConversation = async (resGraph: any, input: any) => {
+export const logAIConversation = async (
+  resGraph: any,
+  input: any,
+  threadId: string
+) => {
   // It takes a BaseMessage object as input (which could be a HumanMessage, AIMessage, SystemMessage, or ToolMessage)
   // It creates a formatted string with the message type and content: [type]: content
   // If the message is an AIMessage with tool calls, it also formats and adds those tool calls to the output
@@ -56,7 +61,7 @@ export const logAIConversation = async (resGraph: any, input: any) => {
     console.log(txt);
   };
 
-  for await (const step of await resGraph.stream(input, {
+  for await (const step of await resGraph.stream(input, threadId, {
     streamMode: "values",
   })) {
     const lastMessage = step.messages[step.messages.length - 1];

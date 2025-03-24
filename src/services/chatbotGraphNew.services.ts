@@ -1,6 +1,10 @@
 import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { ChatMistralAI, MistralAIEmbeddings } from "@langchain/mistralai";
-import { MessagesAnnotation, StateGraph } from "@langchain/langgraph";
+import {
+  MemorySaver,
+  MessagesAnnotation,
+  StateGraph,
+} from "@langchain/langgraph";
 import { splitDocs } from "../utils/splitDocs";
 import { z } from "zod";
 import { tool } from "@langchain/core/tools";
@@ -12,6 +16,7 @@ import {
   ToolMessage,
 } from "@langchain/core/messages";
 import { logAIConversation } from "../utils/extractFinalAIResponse";
+import { v4 as uuidv4 } from "uuid";
 
 // Instantiate the model
 const llm = new ChatMistralAI({
@@ -126,7 +131,11 @@ export const createGraph = async () => {
     console.log("Messages sent to LLM:", messagesWithSystem);
 
     const response = await llmWithTools.invoke(messagesWithSystem);
+    // const response = await llmWithTools.invoke(state.messages);
     // console.log("Model response:", response);
+
+    // MessagesState appends messages to state instead of overwriting
+    // this will be very useful for message history
     return { messages: [response] };
   }
 
@@ -194,23 +203,32 @@ export const createGraph = async () => {
     .addEdge("tools", "generate")
     .addEdge("generate", "__end__");
 
-  const graph = graphBuilder.compile();
+  // specify a checkpointer before compiling
+  // remember that messages are not being overwritten by the nodes, just appended
+  // this means we can retain a consistent chat history across invocations
+  // Checkpoint is a snapshot of the graph state saved at each super-step
+  const checkpointer = new MemorySaver();
+  const graphWithMemory = graphBuilder.compile({ checkpointer });
 
-  return graph;
+  return graphWithMemory;
 };
 
-export const answerQuestion = async (question: string) => {
+export const answerQuestion = async (question: string, threadId?: string) => {
   let inputs = { messages: [{ role: "user", content: question }] }; // same as {question: question}
+
+  let newThreadId = threadId ?? uuidv4();
+
+  let config = { configurable: { thread_id: newThreadId } };
 
   // is it sensible to create a graph each time?
   const resGraph = await createGraph();
-  const response = await resGraph.invoke(inputs);
+  const response = await resGraph.invoke(inputs, config);
 
   // logs the graph conversation in console
   // can be used to see how the query is rewritten before being sent to the llm
   // and also what relevant content is extracted and how it is used
-  await logAIConversation(resGraph, inputs);
+  await logAIConversation(resGraph, inputs, newThreadId);
 
   // return response;
-  return response.messages[response.messages.length - 1].lc_kwargs.content;
+  return response.messages[response.messages.length - 1].content;
 };
