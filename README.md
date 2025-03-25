@@ -1,14 +1,16 @@
-# 🏨 Hotel Management AI Chatbot with ChromaDB
+# 🏨 Hotel Management AI Chatbot
 
-This project is a **hotel management AI chatbot** that answers customer queries based on stored **FAQs**. It uses **ChromaDB** as a vector database to store and retrieve knowledge efficiently.
+This project is a **hotel management AI chatbot** that answers customer queries based on stored **FAQs**.
+The chatbot uses LangChain, Groq AI's large language model, Mistral AI's embeddings, and a memory-based vector store to deliver precise and contextual responses.
+It also integrates tools for retrieving and processing knowledge from a knowledge base, ensuring a seamless conversational experience.
 
 ## 🚀 Features
 
 - **AI-Powered Chatbot**: Answers customer questions based on FAQs.
-- **ChromaDB for Vector Storage**: Stores hotel FAQs for efficient retrieval.
 - **Node.js API with Express**: Provides REST endpoints for storing and querying data.
-- **Embeddings for Search**: Uses OpenAI or another model to generate embeddings.
-- **Docker Support**: Runs ChromaDB in a containerized environment.
+- **Embeddings for Search**: Uses Mistral AI to generate embeddings.
+- **Tool-Based Query Processing**: Leverages LangGraph's tool calling feature to rewrite and optimize user queries for accurate answers.
+- **AI-Powered Conversations**: Employs a state-of-the-art language model, Groq AI's **llama-3.3-70b-versatile**, for natural language understanding.
 
 ## 🛠 Setup & Installation
 
@@ -30,37 +32,16 @@ npm install
 Create a `.env` file and add:
 
 ```ini
-CHROMA_DB_URL=http://localhost:8000
 PORT=5000
 MISTRAL_API_KEY=<your-API-key>
-HF_TOKEN=<your-API-key>
-; this is optional and is necessary only if you want to use a purely OSS model instead
-
+GROQ_API_KEY=<your-API-key>
 ```
 
-### **4️⃣ Start ChromaDB with Docker**
-
-Ensure you have **Docker** installed, then run:
-
-```sh
-docker-compose up -d
-```
-
-### **5️⃣ Start the Node.js Server**
+### **4️⃣ Start the Node.js Server**
 
 ```sh
 npm start
 ```
-
----
-
-## ✅ Future Improvements
-
-- **Integrate Hugging Face Models** for embedding generation.
-- **Enhance AI Chatbot** with better NLP capabilities.
-- **Improve Vector Search** using fine-tuned embeddings.
-
----
 
 ## 📜 License
 

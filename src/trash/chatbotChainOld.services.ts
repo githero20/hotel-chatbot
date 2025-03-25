@@ -15,7 +15,7 @@ let vectorStore: Chroma | null = null;
 
 const ChromaDbUrl = process.env.CHROMA_URL || "http://localhost:8000";
 
-// initialize FAQs
+// initialize FAQs and create Vector store
 export const initFAQs = async () => {
   if (vectorStore) return vectorStore; // Prevent reloading if already initialized
   console.log("default vector store", vectorStore);
@@ -59,7 +59,8 @@ export const initFAQs = async () => {
   return vectorStore;
 };
 
-export const answerQuestion = async (question: string) => {
+// creates chain and returns a response
+export const createChain = async (question: string) => {
   if (!vectorStore) {
     console.warn("⚠ Vector store not initialized, initializing now...");
     await initFAQs();
@@ -96,12 +97,23 @@ Helpful Answer:`
   );
   const parser = new StringOutputParser();
 
+  // const chain = await createStuffDocumentsChain({
+  //   llm,
+  //   promptTemplate,
+  //   parser
+  // })
+
   const chain = promptTemplate.pipe(llm).pipe(parser);
 
-  const responseText: any = await chain.invoke({
+  const responseText = await chain.invoke({
     context: resultDocs,
     question: question,
   });
 
+  return responseText;
+};
+
+export const answerQuestion = async (question: string) => {
+  const responseText = await createChain(question);
   return responseText;
 };

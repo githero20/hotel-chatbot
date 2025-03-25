@@ -1,5 +1,5 @@
 import app from "./app";
-import { initFAQs } from "./services/chatbot.services";
+import { initFAQs } from "./services/chatbotGraph.services";
 
 const PORT = process.env.PORT || 5000;
 
@@ -8,7 +8,7 @@ const startServer = async () => {
 
   try {
     console.log("🟢 Initializing FAQs in vector store...");
-    const vectorStore = await initFAQs(); // Load FAQs into ChromaDB at startup
+    const vectorStore = await initFAQs();
     if (vectorStore !== undefined || vectorStore !== null)
       console.log("✅ FAQs initialized successfully.");
   } catch (error) {
@@ -21,9 +21,3 @@ const startServer = async () => {
 };
 
 startServer();
-
-// docker pull chromadb/chroma
-// docker run -p 8000:8000 chromadb/chroma
-// docker ps
-
-// http://localhost:8000/api//v2/tenants/default_tenant/databases/default_database/collections

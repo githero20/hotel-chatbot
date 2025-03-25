@@ -1,7 +1,7 @@
 import { DocxLoader } from "@langchain/community/document_loaders/fs/docx";
 import { Document } from "@langchain/core/documents";
 
-// function to load faqs from .docx file
+// function to load content from .docx file
 export const faqLoader: (
   absoluteFilePath: string
 ) => Promise<Document<Record<string, any>>[]> = async (
