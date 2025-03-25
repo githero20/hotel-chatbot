@@ -1,4 +1,4 @@
-import { answerQuestion } from "./services/chatbotChain.services"; // Adjust filename
+import { answerQuestion } from "./trash/chatbotChainOld.services"; // Adjust filename
 
 (async () => {
   const response = await answerQuestion(

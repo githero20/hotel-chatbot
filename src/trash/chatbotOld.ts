@@ -1,4 +1,4 @@
-import { faqLoader } from "./utils/faqLoader";
+import { faqLoader } from "../utils/faqLoader";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
