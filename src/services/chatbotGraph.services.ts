@@ -244,11 +244,6 @@ export const answerQuestion = async (question: string, threadId?: string) => {
     };
   }
 
-  // logs the graph conversation in console
-  // can be used to see how the query is rewritten before being sent to the llm
-  // and also what relevant content is extracted and how it is used
-  // await logAIConversation(resGraph, inputs, newThreadId);
-
   const finalRes: {
     answer: string;
     threadId: string;
