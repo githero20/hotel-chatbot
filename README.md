@@ -1,13 +1,13 @@
-# 🏨 Hotel Management AI Chatbot
+# 🏨 FAQ-based AI Chatbot
 
-This project is a **hotel management AI chatbot** that answers customer queries based on stored **FAQs**.
+This project is a **FAQ-based AI chatbot** that answers customer queries based on stored **FAQs**.
 The chatbot uses LangChain, Groq AI's large language model, Mistral AI's embeddings, and a memory-based vector store to deliver precise and contextual responses.
 It also integrates tools for retrieving and processing knowledge from a knowledge base, ensuring a seamless conversational experience.
 
 ## 🚀 Features
 
-- **AI-Powered Chatbot**: Answers customer questions based on FAQs.
-- **Node.js API with Express**: Provides REST endpoints for storing and querying data.
+- **AI-Powered Chatbot**: Answers customer questions based on a provided FAQ document.
+- **Node.js API with Express**: Provides REST endpoints for passing the responses via API.
 - **Embeddings for Search**: Uses Mistral AI to generate embeddings.
 - **Tool-Based Query Processing**: Leverages LangGraph's tool calling feature to rewrite and optimize user queries for accurate answers.
 - **AI-Powered Conversations**: Employs a state-of-the-art language model, Groq AI's **llama-3.3-70b-versatile**, for natural language understanding.
