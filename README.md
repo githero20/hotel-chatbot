@@ -1,7 +1,7 @@
-# 🏨 FAQ-based AI Chatbot
+# 🏨 FAQ-based AI Chatbot (RAG)
 
-This project is a **FAQ-based AI chatbot** that answers customer queries based on stored **FAQs**.
-The chatbot uses LangChain, Groq AI's large language model, Mistral AI's embeddings, and a memory-based vector store to deliver precise and contextual responses.
+This **Retrieval-Augmented Generation** application is a **FAQ-based AI chatbot** that answers customer queries based on stored **FAQs**.
+This chatbot uses LangGraph from LangChain, Groq AI's large language model, Mistral AI's embeddings, and a memory-based vector store to deliver precise and contextual responses.
 It also integrates tools for retrieving and processing knowledge from a knowledge base, ensuring a seamless conversational experience.
 
 ## 🚀 Features
