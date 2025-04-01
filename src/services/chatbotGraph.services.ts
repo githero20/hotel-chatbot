@@ -1,11 +1,12 @@
 import { MistralAIEmbeddings } from "@langchain/mistralai";
 import { ChatGroq } from "@langchain/groq";
+import { MemoryVectorStore } from "langchain/vectorstores/memory";
+import { splitDocs } from "../utils/splitDocs";
 import {
   MemorySaver,
   MessagesAnnotation,
   StateGraph,
 } from "@langchain/langgraph";
-import { splitDocs } from "../utils/splitDocs";
 import { z } from "zod";
 import { tool } from "@langchain/core/tools";
 import { ToolNode, toolsCondition } from "@langchain/langgraph/prebuilt";
@@ -19,7 +20,6 @@ import {
 // import { logAIConversation } from "../utils/extractFinalAIResponse";
 import { v4 as uuidv4 } from "uuid";
 import { exportLastAIMsg } from "../utils/extractFinalAIResponse";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
 const llm = new ChatGroq({
   model: "llama-3.3-70b-versatile",
@@ -35,7 +35,7 @@ const embeddings = new MistralAIEmbeddings({
 let vectorStore: MemoryVectorStore | null = null;
 
 // Store Graph in memory
-let resGraph: any = null;
+let resGraph: unknown = null;
 
 // initialize FAQs
 // create Vector store
@@ -48,8 +48,6 @@ export const initFAQs = async () => {
   console.log("🟢 Initializing vector store...");
 
   // Initialise vector store
-  console.log("✅ Vector store initialized with hotel FAQs.");
-
   vectorStore = new MemoryVectorStore(embeddings);
 
   await vectorStore.addDocuments(chunks);
@@ -57,7 +55,7 @@ export const initFAQs = async () => {
   if (vectorStore == undefined || vectorStore == null) {
     console.warn("⚠ Vector store creation failed");
   }
-  console.log("Initialized vector store successfully.");
+  console.log("✅ Vector store initialized successfully with hotel FAQs.");
 
   return vectorStore;
 };
@@ -123,7 +121,7 @@ export const createGraph = async () => {
     const messagesWithSystem = [systemMessage, ...userMessages];
     // console.log("Messages sent to LLM:", messagesWithSystem);
 
-    // trims to the last 80 tokens
+    // trims to the last 80 tokens to prevent the messages from getting too long
     const trimmer = trimMessages({
       maxTokens: 80,
       strategy: "last",
@@ -147,7 +145,7 @@ export const createGraph = async () => {
   // Executes the retrieval tool and adds the result as a ToolMessage to the state
   const tools = new ToolNode([retrieve]);
 
-  // Generate a response using the retrieved content.
+  // Generates a response using the retrieved content.
   async function generate(state: typeof MessagesAnnotation.State) {
     let recentToolMessages = [];
     for (let i = state["messages"].length - 1; i >= 0; i--) {
@@ -226,9 +224,8 @@ export const answerQuestion = async (question: string, threadId?: string) => {
 
   let newThreadId = threadId ?? uuidv4();
 
-  console.log("newThread", newThreadId);
+  // console.log("newThread", newThreadId);
 
-  // is it sensible to create a graph each time?
   if (!resGraph) {
     resGraph = await createGraph();
   }
