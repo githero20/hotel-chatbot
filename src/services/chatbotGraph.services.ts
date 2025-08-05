@@ -63,8 +63,7 @@ export const createGraph = async () => {
     await initFAQs();
   }
 
-  // Retriever as a langchain tool
-  // this allows the model to rewrite user queries into more effective search queries
+  // this schema allows the model to rewrite user queries into more effective search queries
   const retrieveSchema = z.object({ query: z.string() });
 
   // this converts the retriever function into a tool that must return a query
@@ -110,7 +109,7 @@ export const createGraph = async () => {
         "1. 'retrieve' - Use this for hotel-specific questions (policies, amenities, services, etc.)\n" +
         "2. 'tavily_search' - Use this for general information, current events, weather, local attractions, etc.\n" +
         "When asked a question, ALWAYS choose the most appropriate tool based on the question type. " +
-        "For hotel-related questions, use 'retrieve' first. For general questions, use internet search. \n" +
+        "For hotel-related questions, use 'retrieve' first. For general questions, use 'tavily_search'. \n" +
         "Formulate a search query based on the user's question."
     );
 
