@@ -19,7 +19,7 @@ import {
 } from "@langchain/core/messages";
 // import { logAIConversation } from "../utils/extractFinalAIResponse";
 import { v4 as uuidv4 } from "uuid";
-import { exportLastAIMsg } from "../utils/extractFinalAIResponse";
+import { exportLastAIMsg } from "../utils/exportLastAIMsg";
 
 const llm = new ChatGroq({
   model: "llama-3.3-70b-versatile",
@@ -30,10 +30,8 @@ const llm = new ChatGroq({
 const embeddings = new MistralAIEmbeddings({
   model: "mistral-embed",
 });
-
 // Store vector DB in memory
 let vectorStore: MemoryVectorStore | null = null;
-
 // Store Graph in memory
 let resGraph: unknown = null;
 
@@ -42,16 +40,12 @@ let resGraph: unknown = null;
 export const initFAQs = async () => {
   if (vectorStore) return vectorStore; // Prevent reloading if already initialized
   console.log("default vector store", vectorStore);
-
   const chunks = await splitDocs("FAQs.docx");
-
   console.log("🟢 Initializing vector store...");
 
   // Initialise vector store
   vectorStore = new MemoryVectorStore(embeddings);
-
   await vectorStore.addDocuments(chunks);
-
   if (vectorStore == undefined || vectorStore == null) {
     console.warn("⚠ Vector store creation failed");
   }
@@ -70,7 +64,6 @@ export const createGraph = async () => {
   }
 
   // USING LangGraph
-
   // Retriever as a langchain tool
   // this allows the model to rewrite user queries into more effective search queries
   const retrieveSchema = z.object({ query: z.string() });
@@ -221,11 +214,8 @@ export const createGraph = async () => {
 
 export const answerQuestion = async (question: string, threadId?: string) => {
   let inputs = { messages: [{ role: "user", content: question }] };
-
   let newThreadId = threadId ?? uuidv4();
-
   // console.log("newThread", newThreadId);
-
   if (!resGraph) {
     resGraph = await createGraph();
   }

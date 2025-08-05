@@ -5,16 +5,9 @@ export const exportLastAIMsg = async (
   input: any,
   threadId: string
 ) => {
-  // It takes a BaseMessage object as input (which could be a HumanMessage, AIMessage, SystemMessage, or ToolMessage)
-  // It creates a formatted string with the message type and content: [type]: content
-  // If the message is an AIMessage with tool calls, it also formats and adds those tool calls to the output
-  // It logs the formatted string to the console
-  // It also returns the formatted text (though in your original code, this return value wasn't being used)
-
-  // logs the graph conversation in console
-  // can be used to see how the query is rewritten before being sent to the llm
+  // [OPTIONAL] https://js.langchain.com/docs/tutorials/qa_chat_history/
+  // logs the graph conversation in console can be used to see how the query is rewritten before being sent to the llm
   // and also what relevant content is extracted and how it is used
-
   const prettyPrint = (message: BaseMessage) => {
     let txt = `[${message.getType()}]: ${message.content}`;
     if ((isAIMessage(message) && message.tool_calls?.length) || 0 > 0) {
@@ -36,7 +29,7 @@ export const exportLastAIMsg = async (
   for await (const step of await resGraph.stream(input, threadConfig)) {
     const lastMessage = step.messages[step.messages.length - 1];
 
-    // Pretty-print the message
+    // [OPTIONAL] Pretty-print the message
     prettyPrint(lastMessage);
     console.log("-----\n");
 
