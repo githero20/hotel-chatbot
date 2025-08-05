@@ -109,7 +109,7 @@ export const createGraph = async () => {
     const systemMessage = new SystemMessage(
       "You are a helpful hotel assistant with access to two tools:\n" +
         "1. 'retrieve' - Use this for hotel-specific questions (policies, amenities, services, etc.)\n" +
-        "2. 'tavily_search_results_json' - Use this for general information, current events, weather, local attractions, etc.\n" +
+        "2. 'tavilySearch' - Use this for general information, current events, weather, local attractions, etc.\n" +
         "When asked a question, ALWAYS choose the most appropriate tool based on the question type. " +
         "For hotel-related questions, use 'retrieve' first. For general questions, use internet search. \n" +
         "Formulate a search query based on the user's question."
