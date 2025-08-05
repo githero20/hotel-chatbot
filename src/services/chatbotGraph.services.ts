@@ -17,10 +17,12 @@ import {
   ToolMessage,
   trimMessages,
 } from "@langchain/core/messages";
-// import { logAIConversation } from "../utils/extractFinalAIResponse";
+import { encodingForModel } from "@langchain/core/utils/tiktoken";
+import { TavilySearch } from "@langchain/tavily";
 import { v4 as uuidv4 } from "uuid";
 import { exportLastAIMsg } from "../utils/exportLastAIMsg";
 
+// Instantiate LLM, Groq AI
 const llm = new ChatGroq({
   model: "llama-3.3-70b-versatile",
   temperature: 0,
@@ -30,16 +32,16 @@ const llm = new ChatGroq({
 const embeddings = new MistralAIEmbeddings({
   model: "mistral-embed",
 });
-// Store vector DB in memory
+// Holds the in-memory graph data (type currently unknown)
 let vectorStore: MemoryVectorStore | null = null;
-// Store Graph in memory
+// Holds the in-memory graph data (type currently unknown)
 let resGraph: unknown = null;
 
 // initialize FAQs
 // create Vector store
 export const initFAQs = async () => {
   if (vectorStore) return vectorStore; // Prevent reloading if already initialized
-  console.log("default vector store", vectorStore);
+  console.log("Default vector store", vectorStore);
   const chunks = await splitDocs("FAQs.docx");
   console.log("🟢 Initializing vector store...");
 
@@ -54,23 +56,19 @@ export const initFAQs = async () => {
   return vectorStore;
 };
 
-// uses langgraph
 // creates graph and returns a graph
-// See the official LangChain docs for more https://js.langchain.com/docs/tutorials/qa_chat_history/
 export const createGraph = async () => {
   if (!vectorStore) {
     console.warn("⚠ Vector store not initialized, initializing now...");
     await initFAQs();
   }
 
-  // USING LangGraph
   // Retriever as a langchain tool
   // this allows the model to rewrite user queries into more effective search queries
   const retrieveSchema = z.object({ query: z.string() });
 
   // this converts the retriever function into a tool that must return a query
   const retrieve = tool(
-    // the JS function to be converted
     async ({ query }) => {
       try {
         const retrievedDocs = await vectorStore!.similaritySearch(query, 2);
@@ -88,21 +86,33 @@ export const createGraph = async () => {
     },
     {
       name: "retrieve",
-      description: "Retrieve information related to a query.",
+      description:
+        "Search the hotel's FAQ database for information about hotel policies, services, and amenities.",
       schema: retrieveSchema,
       responseFormat: "content_and_artifact",
     }
   );
 
-  // Function to generate AI Message that may include a tool-call to be sent.
-  async function queryOrRespond(state: typeof MessagesAnnotation.State) {
-    const llmWithTools = llm.bindTools([retrieve]);
+  // Add Tavily search tool
+  const tavilySearch = new TavilySearch({
+    maxResults: 3,
+  });
 
-    // Add system message with clear instructions
+  // Prepares the conversation context and lets the LLM decide whether to use the retrieval tool or respond directly.
+  // if the LLM decides to use the retrieval tool, it will return an AI message with tool calls that the ToolNode will execute with the retrieve function
+  // if not, it will return an AI message with the response
+  async function queryOrRespond(state: typeof MessagesAnnotation.State) {
+    const llmWithTools = llm.bindTools([retrieve]); // tells the LLM about available tools
+
+    // Add system message with clear instructions,
+    // enabling the LLM to decide whether to call a tool or respond directly
     const systemMessage = new SystemMessage(
-      "You are a helpful assistant with access to a knowledge base. " +
-        "When asked a question, ALWAYS use the 'retrieve' tool first to search for relevant information " +
-        "before attempting to answer. Formulate a search query based on the user's question."
+      "You are a helpful hotel assistant with access to two tools:\n" +
+        "1. 'retrieve' - Use this for hotel-specific questions (policies, amenities, services, etc.)\n" +
+        "2. 'tavily_search_results_json' - Use this for general information, current events, weather, local attractions, etc.\n" +
+        "When asked a question, ALWAYS choose the most appropriate tool based on the question type. " +
+        "For hotel-related questions, use 'retrieve' first. For general questions, use internet search. \n" +
+        "Formulate a search query based on the user's question."
     );
 
     // Combines with existing messages but ensure the system message is first
@@ -112,33 +122,67 @@ export const createGraph = async () => {
     );
 
     const messagesWithSystem = [systemMessage, ...userMessages];
-    // console.log("Messages sent to LLM:", messagesWithSystem);
 
-    // trims to the last 80 tokens to prevent the messages from getting too long
+    // trims to the last 1500 tokens to prevent the messages from getting too long
     const trimmer = trimMessages({
-      maxTokens: 80,
+      maxTokens: 1500,
       strategy: "last",
-      tokenCounter: (msgs) => msgs.length,
+      tokenCounter: async (msgs) => {
+        // Get the encoding for the model
+        const encoding = await encodingForModel("gpt-3.5-turbo");
+        let totalTokens = 0;
+
+        for (const msg of msgs) {
+          // Count tokens in the message content
+          if (typeof msg.content === "string") {
+            totalTokens += encoding.encode(msg.content).length;
+          }
+          // Add a small overhead for message metadata (role, etc.)
+          totalTokens += 4; // Rough estimate for message overhead
+        }
+
+        console.log(`Total tokens in messages: ${totalTokens}`);
+
+        return totalTokens;
+      },
       includeSystem: true,
       allowPartial: false,
       startOn: "human",
     });
 
-    const trimmedMessages = await trimmer.invoke(messagesWithSystem);
+    const trimmedMessages = await trimmer.invoke(messagesWithSystem); // returns trimmed messages
 
-    const response = await llmWithTools.invoke(trimmedMessages);
-
-    // console.log("Model response:", response);
+    const response = await llmWithTools.invoke(trimmedMessages); // returns the LLM response, which may include tool calls
+    //  response example:
+    //   {
+    //   role: "assistant",
+    //   content: "",
+    //   tool_calls: [{
+    //     name: "retrieve",
+    //     args: { query: "hotel check-in times" }
+    //   }]
+    // }
 
     // MessagesState appends messages to state instead of overwriting
     // this will be very useful for message history
     return { messages: [response] };
   }
 
-  // Executes the retrieval tool and adds the result as a ToolMessage to the state
-  const tools = new ToolNode([retrieve]);
+  // Instantiate ToolNode with the retrieve tool
+  // ToolNode receives the AIMessage with tool_calls (from the LLM response)
+  // ToolNode executes the retrieve function
+  // ToolNode returns ToolMessage with the results
+  const tools = new ToolNode([retrieve, tavilySearch]);
+
+  //   // After ToolNode processes the tool_calls:
+  // {
+  //   role: "tool",
+  //   content: "Check-in time is 3:00 PM...",
+  //   tool_call_id: "abc123"
+  // }
 
   // Generates a response using the retrieved content.
+  // i.e. combines the user's query with the retrieved content, sends this to the LLM and returns the response
   async function generate(state: typeof MessagesAnnotation.State) {
     let recentToolMessages = [];
     for (let i = state["messages"].length - 1; i >= 0; i--) {
@@ -163,6 +207,7 @@ export const createGraph = async () => {
       `${docsContent}`;
 
     // get all messages relevant to the conversation from the state, i.e. no AI messages with tool calls
+    // this way we have a list of messages that are relevant to the conversation
     const conversationMessages = state.messages.filter(
       (message) =>
         message instanceof HumanMessage ||
@@ -175,6 +220,8 @@ export const createGraph = async () => {
       new SystemMessage(systemMessageContent),
       ...conversationMessages,
     ];
+
+    console.log(prompt);
 
     // Run
     const response = await llm.invoke(prompt);
@@ -215,7 +262,7 @@ export const createGraph = async () => {
 export const answerQuestion = async (question: string, threadId?: string) => {
   let inputs = { messages: [{ role: "user", content: question }] };
   let newThreadId = threadId ?? uuidv4();
-  // console.log("newThread", newThreadId);
+
   if (!resGraph) {
     resGraph = await createGraph();
   }
