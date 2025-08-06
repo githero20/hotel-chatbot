@@ -96,15 +96,16 @@ export const createGraph = async () => {
   });
 
   // Prepares the conversation context and lets the LLM decide whether to use the retrieval tool or respond directly.
-  // if the LLM decides to use the retrieval tool, it will return an AI message with tool calls that the ToolNode will execute with the retrieve function
-  // if not, it will return an AI message with the response
+  // if the LLM decides to use the retrieval tool, it will return an AI message type with tool calls that the ToolNode will
+  // execute with the retrieve function
+  // if not, the tool calls will be empty and the LLM will respond directly
   async function queryOrRespond(state: typeof MessagesAnnotation.State) {
     const llmWithTools = llm.bindTools([retrieve, tavilySearch]); // tells the LLM about available tools
 
     // Add system message with clear instructions,
     // enabling the LLM to decide whether to call a tool or respond directly
     const systemMessage = new SystemMessage(
-      "You are a helpful hotel assistant with access to two tools:\n" +
+      "You are a helpful assistant with access to two tools:\n" +
         "1. 'retrieve' - Use this for questions related to OSCA fest (schedule, events, activities, etc.)\n" +
         "2. 'tavily_search' - Use this for general information, current events, weather, local attractions, etc.\n" +
         "When asked a question, ALWAYS choose the most appropriate tool based on the question type. " +
