@@ -37,12 +37,11 @@ let vectorStore: MemoryVectorStore | null = null;
 // Holds the in-memory graph data (type currently unknown)
 let resGraph: unknown = null;
 
-// initialize FAQs
-// create Vector store
+// initialize vector store and load with external knowledge base
 export const initFAQs = async () => {
   if (vectorStore) return vectorStore; // Prevent reloading if already initialized
   console.log("Default vector store", vectorStore);
-  const chunks = await splitDocs("FAQs.docx");
+  const chunks = await splitDocs("FAQs.docx"); // Load and split the required document
   console.log("🟢 Initializing vector store...");
 
   // Initialise vector store
@@ -300,8 +299,6 @@ export const createGraph = async () => {
     .addEdge("generate", "__end__");
 
   // specify a checkpointer before compiling
-  // remember that messages are not being overwritten by the nodes, just appended
-  // this means we can retain a consistent chat history across invocations
   // Checkpoint is a snapshot of the graph state saved at each super-step
   const checkpointMemory = new MemorySaver();
   const graphWithMemory = graphBuilder.compile({

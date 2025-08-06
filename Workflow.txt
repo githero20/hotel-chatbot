@@ -1,0 +1,48 @@
+                    ┌─────────────┐
+                    │  __start__  │
+                    └──────┬──────┘
+                           │
+                           ▼
+                ┌─────────────────────┐
+                │   queryOrRespond    │ ◄── Analyzes user query, binds tools,
+                │                     │     decides next action
+                │ • Adds system msg   │
+                │ • Trims to 1500 tok │
+                │ • Calls LLM with    │
+                │   [retrieve,        │
+                │    tavilySearch]    │
+                └──────────┬──────────┘
+                           │
+                           ▼
+                  [myToolsCondition] ◄── Checks if response has tool_calls
+                           │
+                    ┌──────┴──────┐
+                    │             │
+                    ▼             ▼
+              ┌───────────┐   ┌───────┐
+              │   tools   │   │__end__│ ◄── Direct response 
+              │           │   └───────┘     (no tools needed)
+              │ ToolNode  │
+              │ executes: │
+              │ • retrieve│
+              │ • tavily  │
+              └─────┬─────┘
+                    │
+                    ▼
+              ┌───────────┐
+              │ generate  │ ◄── Creates final response using 
+              │           │     retrieved context
+              │ • Filters │
+              │   tool    │
+              │   messages│
+              │ • Creates │
+              │   system  │
+              │   prompt  │
+              │ • Calls   │
+              │   LLM     │
+              └─────┬─────┘
+                    │
+                    ▼
+              ┌───────────┐
+              │  __end__  │ ◄── Workflow complete
+              └───────────┘
