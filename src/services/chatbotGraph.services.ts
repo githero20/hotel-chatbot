@@ -85,7 +85,7 @@ export const createGraph = async () => {
     {
       name: "retrieve",
       description:
-        "Search the hotel's FAQ database for information about hotel policies, services, and amenities.",
+        "Search the FAQ database for information about OSCA fest schedule, events, and activities.",
       schema: retrieveSchema,
     }
   );
@@ -105,10 +105,10 @@ export const createGraph = async () => {
     // enabling the LLM to decide whether to call a tool or respond directly
     const systemMessage = new SystemMessage(
       "You are a helpful hotel assistant with access to two tools:\n" +
-        "1. 'retrieve' - Use this for hotel-specific questions (policies, amenities, services, etc.)\n" +
+        "1. 'retrieve' - Use this for questions related to OSCA fest (schedule, events, activities, etc.)\n" +
         "2. 'tavily_search' - Use this for general information, current events, weather, local attractions, etc.\n" +
         "When asked a question, ALWAYS choose the most appropriate tool based on the question type. " +
-        "For hotel-related questions, use 'retrieve' first. For general questions, use 'tavily_search'. \n" +
+        "For OSCA fest-related questions, use 'retrieve' first. For general questions, use 'tavily_search'. \n" +
         "Formulate a search query based on the user's question."
     );
 
