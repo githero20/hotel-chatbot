@@ -41,7 +41,7 @@ let resGraph: unknown = null;
 export const initFAQs = async () => {
   if (vectorStore) return vectorStore; // Prevent reloading if already initialized
   console.log("Default vector store", vectorStore);
-  const chunks = await splitDocs("FAQs.docx"); // Load and split the required document
+  const chunks = await splitDocs("osca-fest-faq.md"); // Load and split the required document
   console.log("🟢 Initializing vector store...");
 
   // Initialise vector store
