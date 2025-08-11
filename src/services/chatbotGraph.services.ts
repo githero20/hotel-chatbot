@@ -226,14 +226,14 @@ export const createGraph = async () => {
 
     // Format into prompt: message plus context
     const docsContent = toolMessages.map((doc) => doc.content).join("\n");
+
     const systemMessageContent =
       "You are a knowledgeable and very helpful assistant with access to a list of FAQs." +
       "Use the following pieces of retrieved context to answer " +
       "the question. If you don't know the answer, just say that you " +
       "don't know, don't try to make up an answer." +
-      "Use three sentences maximum and keep the answer as concise as possible" +
-      "\n\n" +
-      `${docsContent}`;
+      "Use three sentences maximum and keep the answer as concise as possible \n\n" +
+      `Retrieved context: ${docsContent}`;
 
     // get all messages relevant to the conversation from the state, i.e. no AI messages with tool calls
     // this way we have a list of messages that are relevant to the conversation
@@ -241,7 +241,8 @@ export const createGraph = async () => {
       (message) =>
         message instanceof HumanMessage ||
         message instanceof SystemMessage ||
-        (message instanceof AIMessage && message.tool_calls?.length == 0)
+        (message instanceof AIMessage &&
+          (!message.tool_calls || message.tool_calls?.length == 0))
     );
 
     // puts our system message in front
@@ -270,6 +271,7 @@ export const createGraph = async () => {
     // -----
 
     // Run
+    console.log("Generating final response");
     const response = await llm.invoke(prompt);
     return { messages: [response] };
   }
@@ -278,12 +280,6 @@ export const createGraph = async () => {
   const myToolsCondition = (state: typeof MessagesAnnotation.State) => {
     const result = toolsCondition(state);
     console.log("Tools condition result:", result);
-
-    //     Tools condition result: tools
-    // [ai]:
-    // Tools:
-    // - retrieve({"query":"hotel check-in time"})
-
     return result;
   };
 
@@ -297,7 +293,12 @@ export const createGraph = async () => {
       tools: "tools",
     })
     .addEdge("tools", "generate")
-    .addEdge("generate", "__end__");
+    // .addEdge("generate", "__end__");
+    // Allow generate to loop back to tools if it needs more information
+    .addConditionalEdges("generate", myToolsCondition, {
+      __end__: "__end__",
+      tools: "tools",
+    });
 
   // specify a checkpointer before compiling
   // Checkpoint is a snapshot of the graph state saved at each super-step
@@ -309,9 +310,15 @@ export const createGraph = async () => {
   return graphWithMemory;
 };
 
-export const answerQuestion = async (question: string, threadId?: string) => {
+export const answerQuestion: (
+  question: string,
+  threadId: string
+) => Promise<{
+  answer: string;
+  threadId: string;
+}> = async (question: string, threadId: string) => {
   let inputs = { messages: [{ role: "user", content: question }] };
-  let newThreadId = threadId ?? uuidv4();
+  let newThreadId = threadId || uuidv4();
 
   if (!resGraph) {
     resGraph = await createGraph();
@@ -325,8 +332,10 @@ export const answerQuestion = async (question: string, threadId?: string) => {
     // Provide a fallback response or rethrow
     return {
       answer: "I'm sorry, I encountered an error processing your question.",
+      threadId: newThreadId,
     };
   }
+  console.log("✅ Vector store initialized successfully with FAQs.");
 
   const finalRes: {
     answer: string;

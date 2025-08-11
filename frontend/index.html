@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OSCA Chatbot - Open Source Africa Fest</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="chat-container">
+      <div class="chat-header">
+        <div class="header-content">
+          <div class="logo-section">
+            <div class="logo">🌍</div>
+            <div class="title-section">
+              <h1>OSCA Chatbot</h1>
+              <p>Your guide to Open Source Africa Fest</p>
+            </div>
+          </div>
+          <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span>Online</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="message bot-message">
+          <div class="message-content">
+            <div class="message-bubble">
+              Welcome to OSCA Fest! 🚀 I'm here to help you with information
+              about the Open Source Africa Festival. Ask me about speakers,
+              sessions, schedules, or anything else about the event!
+            </div>
+            <div class="message-time" id="initialTime"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="typing-indicator" id="typingIndicator">
+        <div class="message bot-message">
+          <div class="message-content">
+            <div class="typing-bubble">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-container">
+        <form class="chat-input-form" id="chatForm">
+          <input
+            type="text"
+            id="messageInput"
+            placeholder="Ask about OSCA Fest speakers, sessions, schedule..."
+            autocomplete="off"
+            required
+          />
+          <button type="submit" id="sendButton">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor" />
+            </svg>
+          </button>
+        </form>
+        <div class="suggestions" id="suggestions">
+          <button class="suggestion-chip" data-message="What is OSCA Fest?">
+            What is OSCA Fest?
+          </button>
+          <button class="suggestion-chip" data-message="When is it happening?">
+            When is it happening?
+          </button>
+          <button
+            class="suggestion-chip"
+            data-message="What's the event schedule?"
+          >
+            Event schedule
+          </button>
+          <button class="suggestion-chip" data-message="How to register?">
+            How to register
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="dist/script.js"></script>
+  </body>
+</html>

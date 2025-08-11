@@ -8,8 +8,15 @@ export async function askQuestion(req: Request, res: Response): Promise<void> {
       res.status(400).json({ error: "Question is required." });
       return;
     }
-    const data = await answerQuestion(question, threadId);
-    res.json({ data });
+    const data: { answer: string; threadId: string } = await answerQuestion(
+      question,
+      threadId
+    );
+
+    res.json({
+      answer: data.answer,
+      threadId: data.threadId,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
