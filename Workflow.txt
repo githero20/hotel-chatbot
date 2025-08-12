@@ -1,48 +1,77 @@
-                    ┌─────────────┐
-                    │  __start__  │
-                    └──────┬──────┘
-                           │
-                           ▼
-                ┌─────────────────────┐
-                │   queryOrRespond    │ ◄── Analyzes user query, binds tools,
-                │                     │     decides next action
-                │ • Adds system msg   │
-                │ • Trims to 1500 tok │
-                │ • Calls LLM with    │
-                │   [retrieve,        │
-                │    tavilySearch]    │
-                └──────────┬──────────┘
-                           │
-                           ▼
-                  [myToolsCondition] ◄── Checks if response has tool_calls
-                           │
-                    ┌──────┴──────┐
-                    │             │
-                    ▼             ▼
-              ┌───────────┐   ┌───────┐
-              │   tools   │   │__end__│ ◄── Direct response 
-              │           │   └───────┘     (no tools needed)
-              │ ToolNode  │
-              │ executes: │
-              │ • retrieve│
-              │ • tavily  │
-              └─────┬─────┘
-                    │
-                    ▼
-              ┌───────────┐
-              │ generate  │ ◄── Creates final response using 
-              │           │     retrieved context
-              │ • Filters │
-              │   tool    │
-              │   messages│
-              │ • Creates │
-              │   system  │
-              │   prompt  │
-              │ • Calls   │
-              │   LLM     │
-              └─────┬─────┘
-                    │
-                    ▼
-              ┌───────────┐
-              │  __end__  │ ◄── Workflow complete
-              └───────────┘
+┌─────────────┐
+│  __start__  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────────┐
+│   queryOrRespond    │ ◄── Analyzes user query, decides tool usage
+│                     │
+│ • Classifies query  │
+│ • Adds system msg   │
+│ • Trims to 1500 tok │
+│ • Calls LLM with    │
+│   [retrieve,        │
+│    tavilySearch]    │
+└──────────┬──────────┘
+           │
+           ▼
+    [myToolsCondition] ◄── Checks if response has tool_calls
+           │
+    ┌──────┴──────┐
+    │             │
+    ▼             ▼
+┌───────────┐   ┌───────┐
+│   tools   │   │__end__│ ◄── Direct response 
+│           │   └───────┘     (no tools needed)
+│ ToolNode  │
+│ executes: │
+│ • retrieve│
+│ • tavily  │
+└─────┬─────┘
+      │
+      ▼
+┌─────────────────────┐
+│    queryContext     │ ◄── Evaluates tool results for relevance
+│                     │
+│ • Gets tool results │
+│ • Checks for        │
+│   NO_RELEVANT_INFO  │
+│ • LLM evaluates     │
+│   context quality   │
+│ • Returns           │
+│   CONTEXT_GOOD or   │
+│   new tool calls    │
+└──────────┬──────────┘
+           │
+           ▼
+  [queryContextCondition] ◄── Custom condition: checks for tool_calls
+           │                  or CONTEXT_GOOD signal
+    ┌──────┴──────┐
+    │             │
+    ▼             ▼
+┌───────────┐   ┌─────────────────────┐
+│   tools   │   │      generate       │ ◄── Creates final response
+│           │   │                     │
+│ ToolNode  │   │ • Filters tool      │
+│ executes: │   │   messages          │
+│ • tavily  │   │ • Creates system    │
+│ (fallback)│   │   prompt with       │
+└─────┬─────┘   │   context           │
+      │         │ • Calls LLM for     │
+      │         │   final answer      │
+      │         └──────────┬──────────┘
+      │                    │
+      │         ┌──────────▼──────────┐
+      │         │                     │
+      └─────────┤                     │
+                ▼                     ▼
+          ┌───────────┐         ┌───────────┐
+          │ generate  │         │  __end__  │ ◄── Workflow complete
+          │ (after    │         └───────────┘
+          │ fallback) │
+          └─────┬─────┘
+                │
+                ▼
+          ┌───────────┐
+          │  __end__  │
+          └───────────┘
