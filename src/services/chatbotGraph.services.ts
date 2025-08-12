@@ -110,8 +110,7 @@ export const createGraph = async () => {
 
   // Prepares the conversation context and lets the LLM decide whether to use the retrieval tool or respond directly.
   // if the LLM decides to use the retrieval tool, it will return an AI message type with tool calls that the ToolNode will
-  // execute with the retrieve function
-  // if not, the tool calls will be empty and the LLM will respond directly
+  // execute with the retrieve function if not, the tool calls will be empty and the LLM will respond directly
   async function queryOrRespond(state: typeof MessagesAnnotation.State) {
     const llmWithTools = llm.bindTools([retrieve, tavilySearch]); // tells the LLM about available tools
 
@@ -129,8 +128,7 @@ export const createGraph = async () => {
         "Formulate a search query based on the user's question."
     );
 
-    // Combines with existing messages but ensure the system message is first
-    // this should ensure that the model keeps our prompt top of mind
+    // Combines with existing messages but ensure the system message is first, this should ensure that the model keeps our prompt top of mind
     const conversationMessages = state.messages.filter(
       (message) =>
         message instanceof HumanMessage ||
@@ -431,10 +429,10 @@ export const createGraph = async () => {
       __end__: "__end__",
       tools: "tools",
     })
-    .addEdge("tools", "queryContext") // Always go to queryContext after tools
+    .addEdge("tools", "queryContext")
     .addConditionalEdges("queryContext", queryContextCondition, {
-      generate: "generate", // If context is good, go to generate
-      tools: "tools", // If it needs more info, go back to tools
+      generate: "generate",
+      tools: "tools",
     })
     .addEdge("generate", "__end__");
 
