@@ -60,6 +60,15 @@ export const initFAQs = async () => {
   return vectorStore;
 };
 
+export const cleanupVectorStore = async (): Promise<void> => {
+  if (vectorStore) {
+    // Clear the vector store
+    await vectorStore.delete?.();
+    vectorStore = null;
+    console.log("🧹 Vector store cleaned up");
+  }
+};
+
 // creates graph and returns a graph
 export const createGraph = async () => {
   if (!vectorStore) {

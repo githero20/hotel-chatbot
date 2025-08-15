@@ -7,8 +7,8 @@ export const splitDocs = async (filePath: string) => {
   const loadedDocs = await faqLoader(filePath);
   // create your splitter
   const textSplitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 1000,
-    chunkOverlap: 200,
+    chunkSize: 500,
+    chunkOverlap: 50,
   });
   //  split the docs into chunks
   const chunks = await textSplitter.splitDocuments(loadedDocs);
