@@ -480,7 +480,6 @@ export const answerQuestion: (
       threadId: newThreadId,
     };
   }
-  console.log("✅ Vector store initialized successfully with FAQs.");
 
   const finalRes: {
     answer: string;
