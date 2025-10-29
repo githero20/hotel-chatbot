@@ -127,13 +127,13 @@ export const createGraph = async () => {
     // enabling the LLM to decide whether to call a tool or respond directly
     const systemMessage = new SystemMessage(
       "You are a helpful assistant with access to two tools:\n" +
-        "1. 'retrieve' - ALWAYS Use this for questions related to OSCA Fest or Open Source Africa fest " +
+        "1. 'retrieve' - ALWAYS Use this for questions related to Devfest or Devfest Lagos" +
         "including schedule, events, activities, etc.\n" +
         "2. 'tavily_search' - Use this for general information, current events, " +
         "weather, local attractions, etc.\n" +
         "When asked a question, ALWAYS choose the most appropriate tool based on the question type. " +
         "DO NOT ATTEMPT TO ANSWER, unless you are sure neither of the tools are necessary " +
-        "For OSCA fest-related questions, ALWAYS use 'retrieve' first. For general questions, use 'tavily_search'. \n" +
+        "For Devfest-related questions, ALWAYS use 'retrieve' first. For general questions, use 'tavily_search'. \n" +
         "Formulate a search query based on the user's question."
     );
 
@@ -284,7 +284,7 @@ export const createGraph = async () => {
     //   return { messages: [response] };
     // } else {
     systemPrompt =
-      "You are a helpful OSCA Fest assistant with access to retrieved context. " +
+      "You are a helpful Devfest Lagos assistant with access to retrieved context. " +
       "Review the context below and determine if it answers the user's question.\n\n" +
       `"${userQuestion}"\n\n` +
       "If the context is RELEVANT and SUFFICIENT, respond with 'CONTEXT_GOOD'.\n" +
