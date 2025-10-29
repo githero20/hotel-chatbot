@@ -32,7 +32,7 @@ export const initFAQs = async () => {
   if (vectorStore) return vectorStore; // Prevent reloading if already initialized
   console.log("default vector store", vectorStore);
 
-  const loadedDocs = await faqLoader("FAQs.docx");
+  const loadedDocs = await faqLoader("devfest-faqs.md");
 
   // create your splitter
   const textSplitter = new RecursiveCharacterTextSplitter({
