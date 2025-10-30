@@ -1,14 +1,14 @@
-# OSCA Chatbot Frontend
+# DevFest Chatbot Frontend
 
-A minimal, well-designed chatbot frontend for the Open Source Africa Fest, built with pure HTML, CSS, and TypeScript (no frameworks).
+A minimal, well-designed chatbot frontend for DevFest Lagos, built with pure HTML, CSS, and TypeScript (no frameworks).
 
-## 🌍 About OSCA Fest
+## � About DevFest Lagos
 
-This chatbot serves as a digital assistant for the **Open Source Africa Festival**, helping attendees get information about speakers, sessions, schedules, and general event details.
+This chatbot serves as a digital assistant for **DevFest Lagos**, the Google Developer Festival, helping attendees get information about speakers, workshops, sessions, schedules, and general event details.
 
 ## ✨ Features
 
-- **🎨 OSCA Branding**: Modern design with Africa-inspired green/blue theme
+- **🎨 DevFest Branding**: Modern design with Google Developer theme colors
 - **💬 Real-time Chat**: Interactive chat interface with typing indicators
 - **🔘 Smart Suggestions**: Pre-built question chips for common inquiries
 - **📱 Responsive Design**: Works perfectly on mobile, tablet, and desktop
@@ -63,7 +63,7 @@ POST /api/chatbot/chat
 
 ```json
 {
-  "question": "What time does OSCA Fest start?",
+  "question": "What time does DevFest Lagos start?",
   "threadId": "optional-thread-id-for-continuity"
 }
 ```
@@ -72,7 +72,7 @@ POST /api/chatbot/chat
 
 ```json
 {
-  "answer": "OSCA Fest starts at 9:00 AM WAT...",
+  "answer": "DevFest Lagos starts at 9:00 AM WAT...",
   "threadId": "thread-123-abc"
 }
 ```
@@ -102,7 +102,7 @@ npx tsc script.ts --outDir dist --target ES2020 --module ES2020 --watch
 ### Update Branding
 
 - **Colors**: Edit CSS gradient variables in `styles.css`
-- **Logo**: Replace the 🌍 emoji in `index.html`
+- **Logo**: Replace the � emoji in `index.html`
 - **Welcome Message**: Update the initial bot message
 - **Suggestion Chips**: Modify question suggestions in HTML
 
@@ -126,12 +126,12 @@ npx tsc script.ts --outDir dist --target ES2020 --module ES2020 --watch
 
 ## 🎯 Suggestion Chips
 
-Pre-configured questions for OSCA Fest:
+Pre-configured questions for DevFest Lagos:
 
-- "What is OSCA Fest?"
-- "Who are the keynote speakers?"
-- "What's the event schedule?"
-- "How to register?"
+- "What is DevFest Lagos?"
+- "When is DevFest happening?"
+- "What are the available workshops?"
+- "How to register for DevFest?"
 
 ## 🚦 Status Indicators
 
@@ -213,4 +213,4 @@ This project is part of the hotel-chatbot repository. Check the main project lic
 
 ---
 
-**Built with ❤️ for Open Source Africa Fest 2025**
+**Built with ❤️ for DevFest Lagos 2024**

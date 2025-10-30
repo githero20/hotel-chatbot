@@ -127,7 +127,7 @@ export const createGraph = async () => {
     // enabling the LLM to decide whether to call a tool or respond directly
     const systemMessage = new SystemMessage(
       "You are a helpful assistant with access to two tools:\n" +
-        "1. 'retrieve' - ALWAYS Use this for questions related to Devfest or Devfest Lagos" +
+        "1. 'retrieve' - ALWAYS Use this for questions related to DevFest or DevFest Lagos or DevFest Lagos 2025" +
         "including schedule, events, activities, etc.\n" +
         "2. 'tavily_search' - Use this for general information, current events, " +
         "weather, local attractions, etc.\n" +
@@ -284,7 +284,7 @@ export const createGraph = async () => {
     //   return { messages: [response] };
     // } else {
     systemPrompt =
-      "You are a helpful Devfest Lagos assistant with access to retrieved context. " +
+      "You are a helpful DevFest Lagos assistant with access to retrieved context. " +
       "Review the context below and determine if it answers the user's question.\n\n" +
       `"${userQuestion}"\n\n` +
       "If the context is RELEVANT and SUFFICIENT, respond with 'CONTEXT_GOOD'.\n" +

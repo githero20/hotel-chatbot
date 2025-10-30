@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OSCA Chatbot - Open Source Africa Fest</title>
+    <title>Devfest Chatbot - Devfest Lagos</title>
 
-    <!-- OSCA Favicon -->
+    <!-- DevFest Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -13,8 +13,8 @@
     <link rel="manifest" href="/site.webmanifest" />
 
     <!-- Theme colors for mobile browsers -->
-    <meta name="theme-color" content="#48bb78" />
-    <meta name="msapplication-TileColor" content="#48bb78" />
+    <meta name="theme-color" content="#4285f4" />
+    <meta name="msapplication-TileColor" content="#4285f4" />
 
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -23,10 +23,12 @@
       <div class="chat-header">
         <div class="header-content">
           <div class="logo-section">
-            <div class="logo">🌍</div>
+            <div class="logo">
+              <img src="gdg_logo.png" width="100%" height="100%" />
+            </div>
             <div class="title-section">
-              <h1>OSCA Chatbot</h1>
-              <p>Your guide to Open Source Africa Fest</p>
+              <h1>DevFest Chatbot</h1>
+              <p>Your guide to DevFest Lagos</p>
             </div>
           </div>
           <div class="status-indicator">
@@ -40,9 +42,10 @@
         <div class="message bot-message">
           <div class="message-content">
             <div class="message-bubble">
-              Welcome to OSCA Fest! 🚀 I'm here to help you with information
-              about the Open Source Africa Festival. Ask me about speakers,
-              sessions, schedules, or anything else about the event!
+              Welcome to DevFest Lagos! 🚀 I'm here to help you with information
+              about the Google Developer Festival. Ask me about speakers,
+              sessions, workshops, registration, or anything else about the
+              event!
             </div>
             <div class="message-time" id="initialTime"></div>
           </div>
@@ -66,7 +69,7 @@
           <input
             type="text"
             id="messageInput"
-            placeholder="Ask about OSCA Fest speakers, sessions, schedule..."
+            placeholder="Ask about DevFest speakers, workshops, schedule..."
             autocomplete="off"
             required
           />
@@ -83,19 +86,25 @@
           </button>
         </form>
         <div class="suggestions" id="suggestions">
-          <button class="suggestion-chip" data-message="What is OSCA Fest?">
-            What is OSCA Fest?
+          <button class="suggestion-chip" data-message="What is DevFest Lagos?">
+            What is DevFest Lagos?
           </button>
-          <button class="suggestion-chip" data-message="When is it happening?">
+          <button
+            class="suggestion-chip"
+            data-message="When is DevFest happening?"
+          >
             When is it happening?
           </button>
           <button
             class="suggestion-chip"
-            data-message="What's the event schedule?"
+            data-message="What are the available workshops?"
           >
-            Event schedule
+            Workshops available
           </button>
-          <button class="suggestion-chip" data-message="How to register?">
+          <button
+            class="suggestion-chip"
+            data-message="How to register for DevFest?"
+          >
             How to register
           </button>
         </div>
